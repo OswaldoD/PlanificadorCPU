@@ -30,6 +30,7 @@ void* Servidor(void* arg)
         {
             /*Si el buffer es igual a salir se procede a mostrar al usuario el mensjae que contiene el hilo del socket*/
             printf("%s\n",BufferCliente); 
+            usleep(1000000);
         }
         else
              {
@@ -134,7 +135,8 @@ int main()
             printf("Error e el hilo\n");
             exit(1);//sale de la ejecución
 		}
- 
+		//usleep(1000000);
+		pthread_join(thread,NULL);
         pthread_detach(thread);
     }
     exit(0);
