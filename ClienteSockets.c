@@ -8,6 +8,7 @@
 #include <sys/ioctl.h>
 #include <ctype.h>
 #include <string.h>
+
  
 int ConfiguracionCliente()
 {

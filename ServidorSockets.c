@@ -8,6 +8,10 @@
 #include <arpa/inet.h>
 #include <sys/ioctl.h>
 #include <pthread.h>
+#include "PCB.h"
+
+int tipoAlgoritmo;
+PCB datosPCB;
 
 /*La función servidor es la encargada de comunicar los sockets del servidor y los hilos de los procesos.*/
  
@@ -29,19 +33,24 @@ void* Servidor(void* arg)
         
         //Ciclo encargado de verificar el momento en el que termina un hilo del mensaje
         /*Si el buffer es igual a salir se procede a mostrar al usuario el mensjae que contiene el hilo del socket*/
-         printf("%d\n",BufferCliente[0]); 
+         //printf("%d\n",BufferCliente[1]); 
         
         //aquí se debe indentificar el algoritmo que viene en la primera posicion y lo guarda en la variable global 
-            
-         usleep(1000000);            
+        //Procesar los datos recibidos
+        tipoAlgoritmo = BufferCliente[0];        
+        datosPCB.PID = BufferCliente[1];        
+        datosPCB.burst = BufferCliente[2];
+        datosPCB.prioridad = BufferCliente[3];
+        //falta contemplar el tamaño la posicion 4 del buffer
+        
 
+         usleep(1000000);            
+    }
          /*terminar el descriptor del socket*/
          close(sockEntrada);
                  
          /*Se cierra el hilo del socket*/
-         pthread_exit((void*) 0);
-
-    }
+         pthread_exit((void*) 0);    
 }
 
 /*Mediante este método se realiza toda la configuración de la creación del socket*/ 
@@ -99,12 +108,30 @@ int ConfiguracionServidor()
 }
 
 void* CPUScheduler(){
-	int cont=10;
-	while(cont>0){
-		printf("Hilo 2\n");
-		cont=cont-1;
-		usleep(1000000);
+	printf("%d\n",tipoAlgoritmo);
+	switch(tipoAlgoritmo)
+	{
+			case 1: //FIFO
+				//llamar al algoritmo FIFO
+				printf("FIFO\n");
+				break;
+			case 2: //SJF
+				//llamar al algoritmo SJF
+				printf("SJF\n");
+				break;
+			case 3: //HPF
+				//llamar al algoritmo HPF
+				printf("HPF\n");
+				break;
+			case 4: //RR
+				//llamar al algoritmo RR
+				printf("RR\n");
+				break;
 	}
+	usleep(1000000);
+	printf("ID %d\n",datosPCB.PID);
+	printf("BURST %d\n",datosPCB.burst);
+	printf("PRIORIDAD %d\n",datosPCB.prioridad);
 }
 
 /*Función principal main encargada de ejecutar todas als funcionalidades del servidor*/ 
