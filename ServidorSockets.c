@@ -20,13 +20,14 @@ pthread_mutex_t ejecutarAlgoritmo;
 /*La función servidor es la encargada de comunicar los sockets del servidor y los hilos de los procesos.*/
  
 void* Servidor(void* arg)
-{
-	pthread_mutex_lock(&obtenerTipoAlgoritmo);
+{	
     /*Delcaración del buffer de entrada (se encargará de almacenar el buffer de entrada del cliente)*/
     int BufferCliente[5];    
     
     /*Se declara el puntero del socket de etrada*/
     int sockEntrada = *(int *) arg;
+    
+    pthread_mutex_lock(&obtenerTipoAlgoritmo);
     
     /*Ciclo infinito que se encargará de estar a la espera de los mensajes del cliente"*/
     printf("Esperando los mensajes... ");
@@ -138,11 +139,13 @@ void* CPUScheduler(){
 				printf("RR\n");
 				break;
 	}
+	pthread_mutex_lock(&ejecutarAlgoritmo);
 	usleep(1000000);
 	printf("ID %d\n",datosPCB.PID);
 	printf("BURST %d\n",datosPCB.burst);
 	printf("PRIORIDAD %d\n",datosPCB.prioridad);
 	pthread_mutex_unlock(&obtenerTipoAlgoritmo);
+	pthread_mutex_unlock(&ejecutarAlgoritmo);
 }
 
 /*Función principal main encargada de ejecutar todas als funcionalidades del servidor*/ 
