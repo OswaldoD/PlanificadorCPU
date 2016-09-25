@@ -7,16 +7,21 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <sys/ioctl.h>
+#include <semaphore.h>
 #include <pthread.h>
 #include "PCB.h"
 
 int tipoAlgoritmo;
 PCB datosPCB;
 
+pthread_mutex_t obtenerTipoAlgoritmo;
+pthread_mutex_t ejecutarAlgoritmo;
+
 /*La función servidor es la encargada de comunicar los sockets del servidor y los hilos de los procesos.*/
  
 void* Servidor(void* arg)
 {
+	pthread_mutex_lock(&obtenerTipoAlgoritmo);
     /*Delcaración del buffer de entrada (se encargará de almacenar el buffer de entrada del cliente)*/
     int BufferCliente[5];    
     
@@ -48,7 +53,9 @@ void* Servidor(void* arg)
     }
          /*terminar el descriptor del socket*/
          close(sockEntrada);
-                 
+
+		pthread_mutex_unlock(&obtenerTipoAlgoritmo);                 
+		
          /*Se cierra el hilo del socket*/
          pthread_exit((void*) 0);    
 }
@@ -108,6 +115,9 @@ int ConfiguracionServidor()
 }
 
 void* CPUScheduler(){
+	pthread_mutex_lock(&ejecutarAlgoritmo);
+	pthread_mutex_lock(&obtenerTipoAlgoritmo);
+	pthread_mutex_unlock(&ejecutarAlgoritmo);
 	printf("%d\n",tipoAlgoritmo);
 	switch(tipoAlgoritmo)
 	{
@@ -132,6 +142,7 @@ void* CPUScheduler(){
 	printf("ID %d\n",datosPCB.PID);
 	printf("BURST %d\n",datosPCB.burst);
 	printf("PRIORIDAD %d\n",datosPCB.prioridad);
+	pthread_mutex_unlock(&obtenerTipoAlgoritmo);
 }
 
 /*Función principal main encargada de ejecutar todas als funcionalidades del servidor*/ 
@@ -156,9 +167,13 @@ int main()
         unsigned int clienteLEN;
         clienteLEN = sizeof (clienteAddr);
         
-        /*se declara un hilo*/
+        /*se declaran los hilos*/
 		pthread_t thread_JOB_SCHEDULER;
 		pthread_t thread_CPU_SCHEDULER;
+		
+		/*Se declaran los mutex para la concurrencia del semáforo*/
+		pthread_mutex_init(&obtenerTipoAlgoritmo, NULL);
+		pthread_mutex_init(&ejecutarAlgoritmo, NULL);
 		
     
 		/*Este if analiza el resultado de la conexión del cliente, en casod e fracaso muestra el mensaje al cliente*/
@@ -180,7 +195,9 @@ int main()
 		
 		pthread_join(thread_JOB_SCHEDULER,NULL);
 		pthread_join(thread_CPU_SCHEDULER,NULL);
-
+	
+		pthread_mutex_destroy(&obtenerTipoAlgoritmo);
+		pthread_mutex_destroy(&ejecutarAlgoritmo);
         
     }
     exit(0);
