@@ -14,7 +14,7 @@
 void* Servidor(void* arg)
 {
     /*Delcaración del buffer de entrada (se encargará de almacenar el buffer de entrada del cliente)*/
-    char BufferCliente[256];
+    int BufferCliente[5];    
     
     /*Se declara el puntero del socket de etrada*/
     int sockEntrada = *(int *) arg;
@@ -24,22 +24,23 @@ void* Servidor(void* arg)
     for (;;)
     {
         /*Función encargada de leer el mensaje o los datos de la conexión del cliente*/
-        read(sockEntrada, BufferCliente, sizeof (BufferCliente));
+        read(sockEntrada, BufferCliente, sizeof (BufferCliente));         
+                      
+        
         //Ciclo encargado de verificar el momento en el que termina un hilo del mensaje
-        if (strcmp(BufferCliente, "salir") != 0)
-        {
-            /*Si el buffer es igual a salir se procede a mostrar al usuario el mensjae que contiene el hilo del socket*/
-            printf("%s\n",BufferCliente); 
-            usleep(1000000);
-        }
-        else
-             {
-                 /*terminar el descriptor del socket*/
-                 close(sockEntrada);
+        /*Si el buffer es igual a salir se procede a mostrar al usuario el mensjae que contiene el hilo del socket*/
+         printf("%d\n",BufferCliente[0]); 
+        
+        //aquí se debe indentificar el algoritmo que viene en la primera posicion y lo guarda en la variable global 
+            
+         usleep(1000000);            
+
+         /*terminar el descriptor del socket*/
+         close(sockEntrada);
                  
-                 /*Se cierra el hilo del socket*/
-                 pthread_exit((void*) 0);
-             }
+         /*Se cierra el hilo del socket*/
+         pthread_exit((void*) 0);
+
     }
 }
 
@@ -97,6 +98,15 @@ int ConfiguracionServidor()
     return SocketDescriptor;//se devuelve el socket
 }
 
+void* CPUScheduler(){
+	int cont=10;
+	while(cont>0){
+		printf("Hilo 2\n");
+		cont=cont-1;
+		usleep(1000000);
+	}
+}
+
 /*Función principal main encargada de ejecutar todas als funcionalidades del servidor*/ 
 int main()
 {
@@ -120,7 +130,9 @@ int main()
         clienteLEN = sizeof (clienteAddr);
         
         /*se declara un hilo*/
-		pthread_t thread;
+		pthread_t thread_JOB_SCHEDULER;
+		pthread_t thread_CPU_SCHEDULER;
+		
     
 		/*Este if analiza el resultado de la conexión del cliente, en casod e fracaso muestra el mensaje al cliente*/
         if ((clienteSocketDescriptor = accept(SocketDescriptor, (struct sockaddr *) & clienteAddr, &clienteLEN)) < 0)
@@ -130,14 +142,19 @@ int main()
 		}
 		
         /*Este if analiza el resultado de la inicialización del hilo, en caso de fracaso muestra el mensaje al cliente */
-        if (pthread_create(&thread, NULL, Servidor, &clienteSocketDescriptor) != 0)
+        if (pthread_create(&thread_JOB_SCHEDULER, NULL, Servidor, &clienteSocketDescriptor) != 0)
 		{
-            printf("Error e el hilo\n");
+            printf("Error en el hilo\n");
             exit(1);//sale de la ejecución
 		}
-		//usleep(1000000);
-		pthread_join(thread,NULL);
-        pthread_detach(thread);
+		
+		pthread_create(&thread_CPU_SCHEDULER, NULL, CPUScheduler, "Iniciar");
+
+		
+		pthread_join(thread_JOB_SCHEDULER,NULL);
+		pthread_join(thread_CPU_SCHEDULER,NULL);
+
+        
     }
     exit(0);
 }

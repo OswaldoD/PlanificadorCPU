@@ -57,22 +57,27 @@ int ConfiguracionCliente()
 void Cliente(int clienteSocketDescriptor)
 {
   /*Se declara el buffer de datos a ser enviados al servidor*/
-  char BufferHaciaServidor[256];
+  int BufferHaciaServidor[5]={1,2,3,4,5};
+
+  
   
   //Se solicita el mensaje para el servidor
-  printf("Igrese el mensaje apra el servidor: ");
+  printf("Ingrese el mensaje para el servidor: ");
   
   //Este ciclo se ejecuta mietras existan procesos para enviarle al servidor
-   do {
+   //do {
  
-        scanf("%s",BufferHaciaServidor);// se almacena el mensaje en el buffer
-        fflush(stdin);
+        //scanf("%s\n",BufferHaciaServidor);// se almacena el mensaje en el buffer
+        //fflush(stdin);
         
 		/*Esta función se encarga de escribir datos a través del descriptor del socket*/
-        write(clienteSocketDescriptor, BufferHaciaServidor, sizeof (BufferHaciaServidor));
+        //write(clienteSocketDescriptor, BufferHaciaServidor, sizeof (BufferHaciaServidor));
+		//BufferHaciaServidor[5]="FIFO";             
+        write(clienteSocketDescriptor, BufferHaciaServidor, sizeof(BufferHaciaServidor));
+        printf("%d\n",BufferHaciaServidor[0]); 
  
       /*Se encarga de verificar que existan procesos para pasarle al descriptor*/
-    } while (strcmp(BufferHaciaServidor, "salir") != 0);
+    //} while (strcmp(BufferHaciaServidor, "salir") != 0);
     
     /*En caso de ya no existir procesos apra enviar al servidor se cierra el descriptor del socket*/
     close(clienteSocketDescriptor);
