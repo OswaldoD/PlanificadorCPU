@@ -140,26 +140,9 @@ int autoMode()
 	int ID = 1;
 	int numbers[5];
 	int times = 1;
-	int nn = 50;
+	int nn = 10;
 	int seed = 79;
 	//srand(7919);
-/**/
-		//system("clear");//llamada al sistema para una limpieza de la consola
-		
-	/*Se declara la estructura del cliente*/
-		
-	struct sockaddr_in serv_addr;
-		
-	/*Se asigan el tamaño de la estructura*/
-    socklen_t addrLEN = sizeof (serv_addr);
-	
-	/*DSe declara el descriptor del cliente*/
-	int descriptorCliente;
-	descriptorCliente = ConfiguracionCliente();
-		
-	/*Llama y ejecuta la función del cliente pasando como parámentro el descriptor del socket del cliente*/
-	
-/**/
 
 	while(times){
 		srand(seed);
@@ -177,11 +160,13 @@ int autoMode()
 
 			printf("Proceso %i burst: %i prioridad: %i creado \n", numbers[1], numbers[2], numbers[3]);
 			
-			fflush(stdin);
+			//fflush(stdin);
 			// envia el proceso al servidor
-			write(descriptorCliente, numbers, sizeof (numbers));
- 			close(descriptorCliente);
- 			
+			passData(numbers);
+
+			//write(descriptorCliente, numbers, sizeof (numbers));
+ 			//close(descriptorCliente);
+
 			ID++;
 			nn--;
 			seed *= 3;
@@ -236,7 +221,8 @@ int manualMode(){
 				printf("\n");*/
 
 				// envia el proceso al servidor
-
+				passData(numbers);
+					
 			}
 			else
 			{

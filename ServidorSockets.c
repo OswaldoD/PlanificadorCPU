@@ -26,7 +26,7 @@ pthread_mutex_t semaforoTipoAlgoritmo;
 void* Servidor(void* arg)
 { 
   /*Delcaración del buffer de entrada (se encargará de almacenar el buffer de entrada del cliente)*/
-   // int BufferCliente[5];    
+    int BufferCliente[5];    
     
     /*Se declara el puntero del socket de etrada*/
     int sockEntrada = *(int *) arg;
@@ -35,37 +35,53 @@ void* Servidor(void* arg)
     /*Ciclo infinito que se encargará de estar a la espera de los mensajes del cliente"*/
     printf("Esperando los mensajes... ");
         
-    for (;;)
-    {
-      int BufferCliente[5];   
+    //for (;;)
+    //{
+
+       
         /*Función encargada de leer el mensaje o los datos de la conexión del cliente*/
+        listen(sockEntrada, 5);
+
         read(sockEntrada, BufferCliente, sizeof (BufferCliente));         
                               
         //Ciclo encargado de verificar el momento en el que termina un hilo del mensaje
         /*Si el buffer es igual a salir se procede a mostrar al usuario el mensjae que contiene el hilo del socket*/
          //printf("%d\n",BufferCliente[1]); 
-        
-        //aquí se debe indentificar el algoritmo que viene en la primera posicion y lo guarda en la variable global 
-        //Procesar los datos recibidos
-        pthread_mutex_lock(&semaforoTipoAlgoritmo);
-        tipoAlgoritmo = BufferCliente[0];        
-        datosPCB.PID = BufferCliente[1];        
-        datosPCB.burst = BufferCliente[2];
-        datosPCB.prioridad = BufferCliente[3];
-        //falta contemplar el tamaño la posicion 4 del buffer  
-        pthread_mutex_unlock(&semaforoTipoAlgoritmo);      
+        if(BufferCliente[0] == 1 ){
 
-        printf("Recibo %i - %i - %i - %i\n", BufferCliente[0], BufferCliente[1], BufferCliente[2],BufferCliente[3] );                 
+                    //aquí se debe indentificar el algoritmo que viene en la primera posicion y lo guarda en la variable global 
+          //Procesar los datos recibidos
+          
+          pthread_mutex_lock(&semaforoTipoAlgoritmo);
+          tipoAlgoritmo = BufferCliente[0];        
+          datosPCB.PID = BufferCliente[1];        
+          datosPCB.burst = BufferCliente[2];
+          datosPCB.prioridad = BufferCliente[3];
+          //falta contemplar el tamaño la posicion 4 del buffer  
+          pthread_mutex_unlock(&semaforoTipoAlgoritmo);      
+
+          printf("Recibo %i - %i - %i - %i\n", BufferCliente[0], BufferCliente[1], BufferCliente[2],BufferCliente[3] );   
+          BufferCliente[0] = 0;
+          BufferCliente[1] = 0;
+          BufferCliente[2] = 0;
+          BufferCliente[3] = 0;
+          BufferCliente[4] = 0;
+        }
+        else{
+
+        }
+              
         sleep(1);        
 
-        close(sockEntrada);  
-    }
+        //close(sockEntrada);  
+   // }
          /*terminar el descriptor del socket*/
          close(sockEntrada);    
-  usleep(1000000);
+      //usleep(1000000);
     
          /*Se cierra el hilo del socket*/
-         pthread_exit(NULL);    
+         pthread_exit((void*) 0);
+        // pthread_exit(NULL);    
 }
 
 void* CPUScheduler(){
@@ -99,7 +115,9 @@ void* CPUScheduler(){
         break;              
   }     
 
+void runFIFO(){
 
+}
   
   pthread_exit(NULL);
 }
