@@ -1,1 +1,1 @@
-gcc -Ipthread -o cliente ClienteSockets.c
+gcc -Ipthread ClienteSockets.c -o cliente

@@ -7,39 +7,101 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <sys/ioctl.h>
+#include <semaphore.h>
 #include <pthread.h>
+#include "PCB.h"
+
+int tipoAlgoritmo=0;
+PCB datosPCB;
+
+/*se declaran los hilos*/
+pthread_t thread_JOB_SCHEDULER;
+pthread_t thread_CPU_SCHEDULER;
+
+/*Se declara el semáforo tipo mutex*/
+pthread_mutex_t semaforoTipoAlgoritmo;
 
 /*La función servidor es la encargada de comunicar los sockets del servidor y los hilos de los procesos.*/
  
 void* Servidor(void* arg)
-{
-    /*Delcaración del buffer de entrada (se encargará de almacenar el buffer de entrada del cliente)*/
-    char BufferCliente[256];
+{ 
+  /*Delcaración del buffer de entrada (se encargará de almacenar el buffer de entrada del cliente)*/
+   // int BufferCliente[5];    
     
     /*Se declara el puntero del socket de etrada*/
     int sockEntrada = *(int *) arg;
+        
     
     /*Ciclo infinito que se encargará de estar a la espera de los mensajes del cliente"*/
     printf("Esperando los mensajes... ");
+        
     for (;;)
     {
+      int BufferCliente[5];   
         /*Función encargada de leer el mensaje o los datos de la conexión del cliente*/
-        read(sockEntrada, BufferCliente, sizeof (BufferCliente));
+        read(sockEntrada, BufferCliente, sizeof (BufferCliente));         
+                              
         //Ciclo encargado de verificar el momento en el que termina un hilo del mensaje
-        if (strcmp(BufferCliente, "salir") != 0)
-        {
-            /*Si el buffer es igual a salir se procede a mostrar al usuario el mensjae que contiene el hilo del socket*/
-            printf("%s\n",BufferCliente); 
-        }
-        else
-             {
-                 /*terminar el descriptor del socket*/
-                 close(sockEntrada);
-                 
-                 /*Se cierra el hilo del socket*/
-                 pthread_exit((void*) 0);
-             }
+        /*Si el buffer es igual a salir se procede a mostrar al usuario el mensjae que contiene el hilo del socket*/
+         //printf("%d\n",BufferCliente[1]); 
+        
+        //aquí se debe indentificar el algoritmo que viene en la primera posicion y lo guarda en la variable global 
+        //Procesar los datos recibidos
+        pthread_mutex_lock(&semaforoTipoAlgoritmo);
+        tipoAlgoritmo = BufferCliente[0];        
+        datosPCB.PID = BufferCliente[1];        
+        datosPCB.burst = BufferCliente[2];
+        datosPCB.prioridad = BufferCliente[3];
+        //falta contemplar el tamaño la posicion 4 del buffer  
+        pthread_mutex_unlock(&semaforoTipoAlgoritmo);      
+
+        printf("Recibo %i - %i - %i - %i\n", BufferCliente[0], BufferCliente[1], BufferCliente[2],BufferCliente[3] );                 
+        sleep(1);        
+
+        close(sockEntrada);  
     }
+         /*terminar el descriptor del socket*/
+         close(sockEntrada);    
+  usleep(1000000);
+    
+         /*Se cierra el hilo del socket*/
+         pthread_exit(NULL);    
+}
+
+void* CPUScheduler(){
+  
+  usleep(1000000);
+ 
+  switch(tipoAlgoritmo)
+  {
+      case 1: //FIFO
+        //llamar al algoritmo FIFO
+        printf("FIFO\n");
+  //        printf("ID %d\n",datosPCB.PID);
+  //printf("BURST %d\n",datosPCB.burst);
+ // printf("PRIORIDAD %d\n",datosPCB.prioridad);
+        //contador=0;
+        break;            
+      case 2: //SJF
+        //llamar al algoritmo SJF
+        printf("SJF\n");
+        //contador=0;
+        break;
+      case 3: //HPF
+        //llamar al algoritmo HPF
+        printf("HPF\n");
+      //  contador=0;
+        break;
+      case 4: //RR
+        //llamar al algoritmo RR
+        printf("RR\n");
+       // contador=0;
+        break;              
+  }     
+
+
+  
+  pthread_exit(NULL);
 }
 
 /*Mediante este método se realiza toda la configuración de la creación del socket*/ 
@@ -96,6 +158,7 @@ int ConfiguracionServidor()
     return SocketDescriptor;//se devuelve el socket
 }
 
+
 /*Función principal main encargada de ejecutar todas als funcionalidades del servidor*/ 
 int main()
 {
@@ -117,25 +180,36 @@ int main()
         /*Se asigna el tamaño de la estructura*/
         unsigned int clienteLEN;
         clienteLEN = sizeof (clienteAddr);
-        
-        /*se declara un hilo*/
-		pthread_t thread;
+          
     
-		/*Este if analiza el resultado de la conexión del cliente, en casod e fracaso muestra el mensaje al cliente*/
+    /*Este if analiza el resultado de la conexión del cliente, en casod e fracaso muestra el mensaje al cliente*/
         if ((clienteSocketDescriptor = accept(SocketDescriptor, (struct sockaddr *) & clienteAddr, &clienteLEN)) < 0)
         {
-			printf("Error en el socket\n");
-			exit(1); //sale de la ejecución
-		}
-		
+      printf("Error en el socket\n");
+      exit(1); //sale de la ejecución
+    }
+    
+    /*Se declaran los mutex para la concurrencia del semáforo*/
+    if(pthread_mutex_init(&semaforoTipoAlgoritmo, NULL)!=0)
+    {
+      perror("Error en el semáforo del tipo de algoritmo");
+    }   
+    
         /*Este if analiza el resultado de la inicialización del hilo, en caso de fracaso muestra el mensaje al cliente */
-        if (pthread_create(&thread, NULL, Servidor, &clienteSocketDescriptor) != 0)
-		{
-            printf("Error e el hilo\n");
+        if (pthread_create(&thread_JOB_SCHEDULER, NULL, Servidor, &clienteSocketDescriptor) != 0)
+    {
+            printf("Error en el hilo\n");
             exit(1);//sale de la ejecución
-		}
- 
-        pthread_detach(thread);
+    }
+    
+    pthread_create(&thread_CPU_SCHEDULER, NULL, CPUScheduler, "Iniciar");
+
+    
+    pthread_join(thread_JOB_SCHEDULER,NULL);
+    pthread_join(thread_CPU_SCHEDULER,NULL);
+  
+    pthread_mutex_destroy(&semaforoTipoAlgoritmo);    
+        
     }
     exit(0);
 }
