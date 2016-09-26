@@ -62,12 +62,13 @@ void* Servidor(void* arg)
           datosPCB[i].PID = BufferCliente[1];        
           datosPCB[i].burst = BufferCliente[2];
           datosPCB[i].prioridad = BufferCliente[3];
-          i++;
+          
           //falta contemplar el tamaño la posicion 4 del buffer                    
           pthread_mutex_unlock(&semaforoTipoAlgoritmo);      
 
           printf("Recibo %i - %i - %i - %i\n", BufferCliente[0], BufferCliente[1], BufferCliente[2],BufferCliente[3] ); 
-		  printf("Cola %i - %i - %i - %i\n", datosPCB[i].PID , datosPCB[i].burst, datosPCB[i].prioridad  );             
+		  printf("Cola %i - %i - %i - %i\n", datosPCB[i].PID , datosPCB[i].burst, datosPCB[i].prioridad  ); 
+		  i++;            
           BufferCliente[0] = 0;
           BufferCliente[1] = 0;
           BufferCliente[2] = 0;
