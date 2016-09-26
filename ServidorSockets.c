@@ -11,8 +11,14 @@
 #include <pthread.h>
 #include "PCB.h"
 
+
+#define n 9999
+
 int tipoAlgoritmo=0;
-PCB datosPCB;
+int i=0;
+PCB datosPCB[n];
+
+
 
 /*se declaran los hilos*/
 pthread_t thread_JOB_SCHEDULER;
@@ -49,18 +55,19 @@ void* Servidor(void* arg)
          //printf("%d\n",BufferCliente[1]); 
         if(BufferCliente[0] == 1 ){
 
-                    //aquí se debe indentificar el algoritmo que viene en la primera posicion y lo guarda en la variable global 
-          //Procesar los datos recibidos
-          
+          //aquí se debe indentificar el algoritmo que viene en la primera posicion y lo guarda en la variable global 
+          //Procesar los datos recibidos          
           pthread_mutex_lock(&semaforoTipoAlgoritmo);
           tipoAlgoritmo = BufferCliente[0];        
-          datosPCB.PID = BufferCliente[1];        
-          datosPCB.burst = BufferCliente[2];
-          datosPCB.prioridad = BufferCliente[3];
-          //falta contemplar el tamaño la posicion 4 del buffer  
+          datosPCB[i].PID = BufferCliente[1];        
+          datosPCB[i].burst = BufferCliente[2];
+          datosPCB[i].prioridad = BufferCliente[3];
+          i++;
+          //falta contemplar el tamaño la posicion 4 del buffer                    
           pthread_mutex_unlock(&semaforoTipoAlgoritmo);      
 
-          printf("Recibo %i - %i - %i - %i\n", BufferCliente[0], BufferCliente[1], BufferCliente[2],BufferCliente[3] );   
+          printf("Recibo %i - %i - %i - %i\n", BufferCliente[0], BufferCliente[1], BufferCliente[2],BufferCliente[3] ); 
+		  printf("Cola %i - %i - %i - %i\n", datosPCB[i].PID , datosPCB[i].burst, datosPCB[i].prioridad  );             
           BufferCliente[0] = 0;
           BufferCliente[1] = 0;
           BufferCliente[2] = 0;
