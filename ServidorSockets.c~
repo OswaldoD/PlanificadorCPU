@@ -114,7 +114,11 @@ void* CPUScheduler(){
        // contador=0;
         break;              
   }     
- 
+
+void runFIFO(){
+
+}
+  
   pthread_exit(NULL);
 }
 
